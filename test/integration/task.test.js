@@ -53,6 +53,17 @@ describe('Task', () => {
           done(err);
         });
     });
+
+    it('throws error if task does not exist', (done) => {
+      api.task.get('todo-that-does-not-exist')
+        .then((task) => {
+          done(task);
+        })
+        .catch((err) => {
+          expect(err).to.exist;
+          done();
+        });
+    });
   });
 
   describe('#getDailys', () => {
@@ -251,6 +262,133 @@ describe('Task', () => {
           expect(err).to.exist;
           done();
         });
+    });
+  });
+
+  describe('#post', () => {
+    it('creates a new task', (done) => {
+      api.task.post()
+        .then((task) => {
+          expect(task.id).to.exist;
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+
+    it('creates a new task with specified task attributes', (done) => {
+      api.task.post({
+        type: 'todo',
+        text: 'new todo',
+        notes: 'new notes',
+      }).then((task) => {
+        expect(task.type).to.eql('todo');
+        expect(task.text).to.eql('new todo');
+        expect(task.notes).to.eql('new notes');
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+    });
+  });
+
+  describe('#put', () => {
+    it('updates an existing task', (done) => {
+      api.task.put(
+        'todo-1',
+        { text: 'updated todo name', notes: 'updated todo notes' }
+      ).then((task) => {
+        expect(task.id).to.eql('todo-1');
+        expect(task.text).to.eql('updated todo name');
+        expect(task.notes).to.eql('updated todo notes');
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+    });
+
+    it('throws an error if no task id is provided', () => {
+      expect(() => {
+        api.task.put();
+      }).to.throw('Task id is required');
+    });
+
+    it('throws an error if no task body is provided', () => {
+      expect(() => {
+        api.task.put('habit-1');
+      }).to.throw('Task body is required');
+    });
+
+    it('returns error if task does not exist', (done) => {
+      api.task.put(
+        'task-does-not-exist',
+        { text: 'updated todo name', notes: 'updated todo notes' }
+      ).then((task) => {
+        done(task);
+      }).catch((err) => {
+        expect(err).to.exist;
+        expect(err.text).to.eql('Task not found.');
+        done();
+      });
+    });
+  });
+
+  describe('#delete', () => {
+    it('deletes an existing task', (done) => {
+      api.task.delete(
+        'todo-1'
+      ).then((task) => {
+        expect(task).to.eql({});
+        return api.task.get('todo-1');
+      })
+      .then((task) => {
+        done(task);
+      })
+      .catch((err) => {
+        expect(err).to.exist;
+        expect(err.text).to.eql('No task found.');
+        done();
+      });
+    });
+
+    it('throws an error if no task id is provided', () => {
+      expect(() => {
+        api.task.delete();
+      }).to.throw('Task id is required');
+    });
+
+    it('returns error if task does not exist', (done) => {
+      api.task.delete(
+        'task-does-not-exist'
+      ).then((task) => {
+        done(task);
+      }).catch((err) => {
+        expect(err).to.exist;
+        expect(err.text).to.eql('Task not found.');
+        done();
+      });
+    });
+  });
+
+  describe('#del', () => {
+    it('is an alias for delete and deletes an existing task', (done) => {
+      api.task.del(
+        'todo-1'
+      ).then((task) => {
+        expect(task).to.eql({});
+        return api.task.get('todo-1');
+      })
+      .then((task) => {
+        done(task);
+      })
+      .catch((err) => {
+        expect(err).to.exist;
+        expect(err.text).to.eql('No task found.');
+        done();
+      });
     });
   });
 });
